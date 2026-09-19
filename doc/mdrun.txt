@@ -1,0 +1,90 @@
+*mdrun.txt*      Execute bash blocks in Markdown                     *mdrun*
+
+mdrun.nvim is a tiny Neovim plugin to execute `bash`/`sh` fenced code blocks
+embedded in Markdown files.
+
+=============================================================================
+USAGE                                                          *mdrun-usage*
+
+Put the cursor anywhere inside a fenced bash or sh block:
+
+> ```bash
+> curl http://localhost:8080/health | jq
+> ```
+
+Then run one of:
+
+    :Mdrun
+    <leader>mr
+
+An output window is opened showing stdout and stderr from the command.
+
+When the cursor is inside a runnable block, a virtual text indicator is shown
+at the end of the opening fence line:
+
+    ▶ Run
+
+=============================================================================
+COMMANDS                                                      *mdrun-commands*
+
+                                                *:Mdrun*
+:Mdrun
+    Run the bash/sh fenced code block under the cursor. If there is no
+    runnable block, a warning is shown.
+
+                                                *:MdrunLast*
+:MdrunLast
+    Reopen the last output buffer in the floating window.
+
+=============================================================================
+MAPPINGS                                                      *mdrun-mappings*
+
+By default mdrun.nvim defines one normal-mode mapping:
+
+    <leader>mr         Run the current bash/sh fenced block (same as :Mdrun).
+
+This mapping can be disabled with a global variable (see |mdrun-config|).
+
+=============================================================================
+CONFIGURATION                                                *mdrun-config*
+
+mdrun.nvim is intentionally minimal. The only configuration option is
+controlling whether the default mapping is created.
+
+    let g:mdrun_no_default_maps = 1
+
+When set before the plugin is loaded, no mappings are installed. You can then
+define your own mapping, for example:
+
+> lua << EOF
+>   vim.keymap.set('n', '<leader>mr', function()
+>     require('mdrun').run()
+>   end, { desc = 'Run bash block under cursor' })
+> EOF
+
+=============================================================================
+OUTPUT WINDOW                                              *mdrun-output-win*
+
+The plugin uses a single floating scratch window for output:
+
+  - Centered in the editor.
+  - Automatically sized, up to 80% of the editor size.
+  - Plain text, read-only buffer.
+  - Normal scrolling, search, and yanking work as usual.
+  - Press |q| in normal mode to close the window.
+
+The window title shows the most recent exit status:
+
+  - ⟳ Running...
+  - ✓ Exit 0
+  - ✗ Exit N
+
+=============================================================================
+ABOUT                                                          *mdrun-about*
+
+The plugin focuses on one use case: turning Markdown documentation with bash
+snippets into executable documentation, with minimal configuration and no
+external dependencies.
+
+=============================================================================
+vim:tw=78:sw=2:ts=2:ft=help:norl:
