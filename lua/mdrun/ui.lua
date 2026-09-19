@@ -66,14 +66,26 @@ function M.update_hover(bufnr)
   end
 
   local row = vim.api.nvim_win_get_cursor(0)[1]
-  local block = parser.find_block(bufnr, row)
-  if not block then
-    -- No active block, render all indicators in normal state.
-    M.refresh_virtual_buttons(bufnr, nil)
-    return
+
+  -- Determine the active block based on cursor position.
+  -- We treat the block as active when the cursor is either:
+  --   - on the opening fence line (hover over the Run label), or
+  --   - inside the block body.
+  local blocks = state.get_blocks(bufnr)
+  if not blocks or #blocks == 0 then
+    blocks = parser.find_all_blocks(bufnr)
+    state.set_blocks(bufnr, blocks)
   end
 
-  M.refresh_virtual_buttons(bufnr, block.start_lnum)
+  local active_start
+  for _, block in ipairs(blocks or {}) do
+    if row == block.start_lnum or (row > block.start_lnum and row < block.end_lnum) then
+      active_start = block.start_lnum
+      break
+    end
+  end
+
+  M.refresh_virtual_buttons(bufnr, active_start)
 end
 
 -- Floating output window ----------------------------------------------------
