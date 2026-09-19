@@ -44,15 +44,16 @@ function M.refresh_virtual_buttons(bufnr, active_start_lnum)
   local text = run_label()
   state.debug("ui: placing Run indicators for " .. tostring(#blocks) .. " blocks")
   for _, block in ipairs(blocks) do
-    local virt
+    local virt_line
     if active_start_lnum and block.start_lnum == active_start_lnum then
-      virt = { { text .. " (Enter)", "Underlined" } }
+      virt_line = { { text .. " (Enter)", "Underlined" } }
     else
-      virt = { { text, "Comment" } }
+      virt_line = { { text, "Comment" } }
     end
+    -- Place the label as a virtual line directly above the fenced block.
     vim.api.nvim_buf_set_extmark(bufnr, state.ns, block.start_lnum - 1, 0, {
-      virt_text = virt,
-      virt_text_pos = "eol",
+      virt_lines = { virt_line },
+      virt_lines_above = true,
     })
   end
 end
