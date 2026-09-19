@@ -124,11 +124,13 @@ local function open_output_win()
   local columns = vim.o.columns
   local lines = vim.o.lines - vim.o.cmdheight
 
-  local max_w = math.floor(columns * 0.8)
-  local max_h = math.floor(lines * 0.8)
+  -- Keep the window compact so it doesn't cover too much of the markdown.
+  -- Still respect the design doc's "maximum 80%" guideline.
+  local max_w = math.floor(columns * 0.6)
+  local max_h = math.floor(lines * 0.4)
 
-  local width = math.min(120, max_w)
-  local height = math.min(40, max_h)
+  local width = math.min(100, max_w)
+  local height = math.min(24, max_h)
 
   width = math.max(width, 20)
   height = math.max(height, 5)
