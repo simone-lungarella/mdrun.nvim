@@ -46,7 +46,7 @@ function M.refresh_virtual_buttons(bufnr, active_start_lnum)
   for _, block in ipairs(blocks) do
     local virt_line
     if active_start_lnum and block.start_lnum == active_start_lnum then
-      virt_line = { { text .. " (Enter)", "Underlined" } }
+      virt_line = { { text, "Underlined" } }
     else
       virt_line = { { text, "Comment" } }
     end
