@@ -31,19 +31,19 @@ function M.refresh_virtual_buttons(bufnr, active_start_lnum)
 
   state.clear_virtual_marks(bufnr)
 
-  local blocks = state.get_blocks(bufnr)
-  if not blocks or #blocks == 0 then
-    blocks = parser.find_all_blocks(bufnr)
-    state.set_blocks(bufnr, blocks)
-  end
+  local blocks = parser.find_all_blocks(bufnr)
   if not blocks or #blocks == 0 then
     state.debug("ui: no runnable blocks found for virtual buttons")
     return
   end
 
   local text = run_label()
+  local line_count = vim.api.nvim_buf_line_count(bufnr)
   state.debug("ui: placing Run indicators for " .. tostring(#blocks) .. " blocks")
   for _, block in ipairs(blocks) do
+    if block.start_lnum < 1 or block.start_lnum > line_count then
+      goto continue
+    end
     local virt_line
     if active_start_lnum and block.start_lnum == active_start_lnum then
       virt_line = { { text, "Underlined" } }
@@ -55,6 +55,7 @@ function M.refresh_virtual_buttons(bufnr, active_start_lnum)
       virt_lines = { virt_line },
       virt_lines_above = true,
     })
+    ::continue::
   end
 end
 
@@ -71,11 +72,7 @@ function M.update_hover(bufnr)
   -- We treat the block as active when the cursor is either:
   --   - on the opening fence line (hover over the Run label), or
   --   - inside the block body.
-  local blocks = state.get_blocks(bufnr)
-  if not blocks or #blocks == 0 then
-    blocks = parser.find_all_blocks(bufnr)
-    state.set_blocks(bufnr, blocks)
-  end
+  local blocks = parser.find_all_blocks(bufnr)
 
   local active_start
   for _, block in ipairs(blocks or {}) do
