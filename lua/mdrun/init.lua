@@ -4,6 +4,8 @@ local ui = require("mdrun.ui")
 
 local M = {}
 
+local state = require("mdrun.state")
+
 local function setup_autocmds()
   local group = vim.api.nvim_create_augroup("mdrun", { clear = true })
 
@@ -30,6 +32,8 @@ function M.run()
   local cursor = vim.api.nvim_win_get_cursor(0)
   local lnum = cursor[1]
 
+   state.debug("init: run() called at line " .. tostring(lnum))
+
   local ok, err = runner.run_current(bufnr, lnum, function(result)
     vim.schedule(function()
       require("mdrun.ui").render_result(result)
@@ -37,8 +41,10 @@ function M.run()
   end)
 
   if ok == nil and err then
+    state.debug("init: run() failed - " .. err)
     vim.notify("mdrun: " .. err, vim.log.levels.WARN)
   else
+    state.debug("init: run() started runner, showing running state")
     -- show immediate running state
     local state = require("mdrun.state")
     local res = state.get_last_result()

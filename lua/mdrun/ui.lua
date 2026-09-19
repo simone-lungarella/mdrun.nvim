@@ -8,6 +8,16 @@ local function is_markdown(bufnr)
   return ft == "markdown" or ft == "md" or ft == "markdown.mdx"
 end
 
+local function run_label()
+  -- Prefer the nicer symbol when running with UTF-8 encoding, otherwise
+  -- fall back to a plain ASCII label that works everywhere.
+  local enc = (vim.o.encoding or ""):lower()
+  if enc == "utf-8" or enc == "utf8" then
+    return "▶ Run"
+  end
+  return "> Run"
+end
+
 -- Virtual button handling ---------------------------------------------------
 
 -- Scan the buffer and place a virtual "Run" indicator on every bash/sh block.
@@ -22,10 +32,12 @@ function M.refresh_virtual_buttons(bufnr)
 
   local blocks = parser.find_all_blocks(bufnr)
   if not blocks or #blocks == 0 then
+    state.debug("ui: no runnable blocks found for virtual buttons")
     return
   end
 
-  local text = "▶ Run"
+  local text = run_label()
+  state.debug("ui: placing Run indicators for " .. tostring(#blocks) .. " blocks")
   for _, block in ipairs(blocks) do
     vim.api.nvim_buf_set_extmark(bufnr, state.ns, block.start_lnum - 1, 0, {
       virt_text = { { text, "Comment" } },
@@ -81,6 +93,8 @@ local function open_output_win()
 
   local row = math.floor((lines - height) / 2)
   local col = math.floor((columns - width) / 2)
+
+  state.debug(string.format("ui: opening output window w=%d h=%d row=%d col=%d", width, height, row, col))
 
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",

@@ -5,6 +5,7 @@ local M = {}
 
 local function run_script(script, cb)
   -- Use vim.system to execute bash with strict flags.
+  state.debug("runner: starting vim.system")
   vim.system({
     "bash",
     "-euo",
@@ -14,6 +15,7 @@ local function run_script(script, cb)
   }, { text = true }, function(result)
     -- Normalize into simple lines and status.
     local code = result.code or 0
+    state.debug("runner: vim.system completed with code " .. tostring(code))
     local ok = code == 0
     local combined
     if result.stderr and result.stderr ~= "" then
@@ -49,12 +51,15 @@ end
 
 function M.run_current(bufnr, cursor_lnum, cb)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
+  state.debug("runner: run_current at line " .. tostring(cursor_lnum))
   local block = parser.find_block(bufnr, cursor_lnum)
   if not block then
+    state.debug("runner: no bash/sh block under cursor")
     return nil, "No bash block under cursor"
   end
   local script = parser.extract_body(bufnr, block)
   if not script or script == "" then
+    state.debug("runner: block is empty")
     return nil, "Block is empty"
   end
 

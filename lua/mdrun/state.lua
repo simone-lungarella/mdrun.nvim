@@ -24,4 +24,12 @@ function M.clear_virtual_marks(bufnr)
   end
 end
 
+function M.debug(msg)
+  if not vim.g.mdrun_debug then
+    return
+  end
+  local level = vim.log and vim.log.levels and vim.log.levels.DEBUG or vim.log.levels.INFO
+  vim.notify("mdrun: " .. msg, level)
+end
+
 return M
