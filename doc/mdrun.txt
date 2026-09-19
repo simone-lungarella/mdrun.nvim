@@ -19,8 +19,8 @@ Then run one of:
 
 An output window is opened showing stdout and stderr from the command.
 
-When the cursor is inside a runnable block, a virtual text indicator is shown
-at the end of the opening fence line:
+For each runnable block, a virtual text indicator is shown at the end of the
+opening fence line:
 
     ▶ Run
 

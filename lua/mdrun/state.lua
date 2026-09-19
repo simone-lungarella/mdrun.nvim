@@ -5,7 +5,6 @@ local M = {}
 M.last_result = nil -- { title = string, lines = {string} }
 
 M.ns = vim.api.nvim_create_namespace("mdrun")
-M.virtual_mark = nil -- extmark id for virtual button
 
 M.output_buf = nil
 M.output_win = nil
@@ -18,15 +17,11 @@ function M.get_last_result()
   return M.last_result
 end
 
-function M.clear_virtual_mark(bufnr)
-  if M.virtual_mark ~= nil then
-    pcall(vim.api.nvim_buf_del_extmark, bufnr, M.ns, M.virtual_mark)
-    M.virtual_mark = nil
+function M.clear_virtual_marks(bufnr)
+  -- Clear all extmarks for this plugin in the given buffer.
+  if bufnr and vim.api.nvim_buf_is_valid(bufnr) then
+    vim.api.nvim_buf_clear_namespace(bufnr, M.ns, 0, -1)
   end
-end
-
-function M.set_virtual_mark(id)
-  M.virtual_mark = id
 end
 
 return M

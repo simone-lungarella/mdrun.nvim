@@ -78,6 +78,45 @@ function M.find_block(bufnr, cursor_lnum)
   }
 end
 
+-- Find all bash/sh fenced blocks in the buffer.
+-- Returns an array of block tables like find_block.
+function M.find_all_blocks(bufnr)
+  local line_count = vim.api.nvim_buf_line_count(bufnr)
+  local blocks = {}
+
+  local lnum = 1
+  while lnum <= line_count do
+    local line = vim.api.nvim_buf_get_lines(bufnr, lnum - 1, lnum, false)[1]
+    local lang = is_fence(line)
+    if lang then
+      local start_lnum = lnum
+      local close_lnum = nil
+      for j = lnum + 1, line_count do
+        local l = vim.api.nvim_buf_get_lines(bufnr, j - 1, j, false)[1]
+        if is_closing_fence(l) then
+          close_lnum = j
+          break
+        end
+      end
+      if not close_lnum then
+        break
+      end
+      table.insert(blocks, {
+        lang = lang,
+        start_lnum = start_lnum,
+        end_lnum = close_lnum,
+        body_start = start_lnum + 1,
+        body_end = close_lnum - 1,
+      })
+      lnum = close_lnum + 1
+    else
+      lnum = lnum + 1
+    end
+  end
+
+  return blocks
+end
+
 function M.extract_body(bufnr, block)
   if not block then
     return nil

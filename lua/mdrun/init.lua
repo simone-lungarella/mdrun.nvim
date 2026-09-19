@@ -7,10 +7,11 @@ local M = {}
 local function setup_autocmds()
   local group = vim.api.nvim_create_augroup("mdrun", { clear = true })
 
-  vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+  -- Refresh virtual Run markers whenever a markdown buffer is shown or written.
+  vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "BufWritePost" }, {
     group = group,
-    callback = function()
-      ui.update_virtual_button()
+    callback = function(args)
+      ui.refresh_virtual_buttons(args.buf)
     end,
   })
 end

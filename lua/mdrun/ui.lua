@@ -10,30 +10,28 @@ end
 
 -- Virtual button handling ---------------------------------------------------
 
-function M.update_virtual_button()
-  local bufnr = vim.api.nvim_get_current_buf()
+-- Scan the buffer and place a virtual "Run" indicator on every bash/sh block.
+function M.refresh_virtual_buttons(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
   if not is_markdown(bufnr) then
-    state.clear_virtual_mark(bufnr)
+    state.clear_virtual_marks(bufnr)
     return
   end
 
-  local row = vim.api.nvim_win_get_cursor(0)[1]
-  local block = parser.find_block(bufnr, row)
-  if not block then
-    state.clear_virtual_mark(bufnr)
+  state.clear_virtual_marks(bufnr)
+
+  local blocks = parser.find_all_blocks(bufnr)
+  if not blocks or #blocks == 0 then
     return
   end
-
-  -- Place indicator on opening fence line, at column 0.
-  state.clear_virtual_mark(bufnr)
 
   local text = "▶ Run"
-  local id = vim.api.nvim_buf_set_extmark(bufnr, state.ns, block.start_lnum - 1, 0, {
-    virt_text = { { text, "Comment" } },
-    virt_text_pos = "eol",
-  })
-
-  state.set_virtual_mark(id)
+  for _, block in ipairs(blocks) do
+    vim.api.nvim_buf_set_extmark(bufnr, state.ns, block.start_lnum - 1, 0, {
+      virt_text = { { text, "Comment" } },
+      virt_text_pos = "eol",
+    })
+  end
 end
 
 -- Floating output window ----------------------------------------------------
