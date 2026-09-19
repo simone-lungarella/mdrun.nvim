@@ -1,4 +1,3 @@
-local parser = require("mdrun.parser")
 local runner = require("mdrun.runner")
 local ui = require("mdrun.ui")
 
@@ -13,7 +12,15 @@ local function setup_autocmds()
   vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter", "BufWritePost" }, {
     group = group,
     callback = function(args)
-      ui.refresh_virtual_buttons(args.buf)
+      ui.refresh_virtual_buttons(args.buf, nil)
+    end,
+  })
+
+  -- Update hover state when the cursor (keyboard or mouse) moves.
+  vim.api.nvim_create_autocmd({ "CursorMoved", "CursorMovedI" }, {
+    group = group,
+    callback = function(args)
+      ui.update_hover(args.buf)
     end,
   })
 end

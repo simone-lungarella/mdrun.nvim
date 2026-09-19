@@ -21,7 +21,8 @@ end
 -- Virtual button handling ---------------------------------------------------
 
 -- Scan the buffer and place a virtual "Run" indicator on every bash/sh block.
-function M.refresh_virtual_buttons(bufnr)
+-- If active_start_lnum is provided, that block gets a hover-style indicator.
+function M.refresh_virtual_buttons(bufnr, active_start_lnum)
   bufnr = bufnr or vim.api.nvim_get_current_buf()
   if not is_markdown(bufnr) then
     state.clear_virtual_marks(bufnr)
@@ -30,7 +31,11 @@ function M.refresh_virtual_buttons(bufnr)
 
   state.clear_virtual_marks(bufnr)
 
-  local blocks = parser.find_all_blocks(bufnr)
+  local blocks = state.get_blocks(bufnr)
+  if not blocks or #blocks == 0 then
+    blocks = parser.find_all_blocks(bufnr)
+    state.set_blocks(bufnr, blocks)
+  end
   if not blocks or #blocks == 0 then
     state.debug("ui: no runnable blocks found for virtual buttons")
     return
@@ -39,11 +44,35 @@ function M.refresh_virtual_buttons(bufnr)
   local text = run_label()
   state.debug("ui: placing Run indicators for " .. tostring(#blocks) .. " blocks")
   for _, block in ipairs(blocks) do
+    local virt
+    if active_start_lnum and block.start_lnum == active_start_lnum then
+      virt = { { text .. " (Enter)", "Underlined" } }
+    else
+      virt = { { text, "Comment" } }
+    end
     vim.api.nvim_buf_set_extmark(bufnr, state.ns, block.start_lnum - 1, 0, {
-      virt_text = { { text, "Comment" } },
+      virt_text = virt,
       virt_text_pos = "eol",
     })
   end
+end
+
+-- Update hover indicator when the cursor (keyboard or mouse) moves.
+function M.update_hover(bufnr)
+  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  if not is_markdown(bufnr) then
+    return
+  end
+
+  local row = vim.api.nvim_win_get_cursor(0)[1]
+  local block = parser.find_block(bufnr, row)
+  if not block then
+    -- No active block, render all indicators in normal state.
+    M.refresh_virtual_buttons(bufnr, nil)
+    return
+  end
+
+  M.refresh_virtual_buttons(bufnr, block.start_lnum)
 end
 
 -- Floating output window ----------------------------------------------------
